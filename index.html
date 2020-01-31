@@ -3,6 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <title>Title</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </head>
 <body>
 
@@ -10,11 +13,14 @@
 
 <textarea id="rowsNumber"></textarea>
 <textarea id="columnsNumber"></textarea>
-<button onclick="generate()">generate buttons</button>
+<button onclick="startGame()">generate buttons</button>
 
 </body>
 
 <style>
+    .noPlayer {
+        background-color: cornsilk;
+    }
     .firstPlayer {
         background-color: red;
 
@@ -23,20 +29,46 @@
         background-color: aqua;
 
     }
-    .default {
-        background-color: cornsilk;
+    /*.default {*/
+    /*    background-color: cornsilk;*/
 
-    }
+    /*}*/
     .coinInsertButton{
         background-color: gold;
-    }
-    div.relative {
-
-    }
-    div > button {
         position: relative;
-        left: 30px;
+    }
+    .relative {
+        /*display: inline;*/
+        /*margin-right: 35px;*/
+        /*float: left;*/
+        /*height: 68px;*/
+        /*width: auto;*/
+        /*display: inline;*/
+        /*align-items: center;*/
+        /*justify-content: center;*/
+    }
+    .default {
+        /*position: relative;*/
+        /*left: 30px;*/
+        display: flex;
+        justify-content: center;
         border: 3px solid #73AD21;
+        display: inline-block;
+        margin: 0 auto;
+        /*margin: 0 auto;*/
+        /*outline-width: 10px;*/
+        /*-webkit-transform: translate(50%, 50%);*/
+        /*-moz-transform: translate(50%, 50%);*/
+        /*transform: translate(50%, 50%);*/
+        /*position:absolute;*/
+        /*background-color:grey;*/
+    }
+
+    .divider {
+        width:30px;
+        height:auto;
+        display: inline-block;
+        /*display:inline-block;*/
     }
 
 </style>
@@ -53,24 +85,31 @@
     var grid;
     var currentPlayer;
 
-    function generate(){
+    function startGame() {
         var rowsNumber = document.getElementById("rowsNumber").value;
         var columnsNumber = document.getElementById("columnsNumber").value;
+        generate(rowsNumber, columnsNumber)
+    }
 
-        for(let j = 0; j < columnsNumber; j++) {
+    function generate(rowsNumber, columnsNumber){
+        for(let i = 0; i < rowsNumber; i++) {
             let div = document.createElement("div");
             div.classList.add("relative");
-            for (let i = 0; i < rowsNumber; i++) {
-                let location = "{0},{1}".format(j, i);
+            for (let j = 0; j < columnsNumber; j++) {
+                let location = "{0},{1}".format(i, j);
                 let btn = document.createElement("button");
                 let t = document.createTextNode(location);
+                let divider = document.createElement("div");
+                divider.className = "divider";
                 btn.style.width = "50px";
                 btn.style.height = "50px";
                 btn.id = location;
+                btn.classList.add("noPlayer");
                 btn.classList.add("default");
                 btn.onclick = function() { setButtonState(btn); };
                 btn.appendChild(t);
                 div.appendChild(btn);
+                div.appendChild(divider);
                 document.getElementById('button-holder').appendChild(div);
             }
         }
@@ -106,10 +145,10 @@
     function setbuttonColor(row, column, currentPlayer) {
         btn = document.getElementById("{0},{1}".format(row, column));
         if (currentPlayer === 1) {
-            btn.className = "firstPlayer";
+            btn.className = btn.className.replace( /(?:^|\s).*Player(?!\S)/g, "firstPlayer");
         }
         else {
-            btn.className = "secondPlayer";
+            btn.className = btn.className.replace( /(?:^|\s).*Player(?!\S)/g, "secondPlayer");
         }
     }
 
@@ -131,6 +170,12 @@
         return -1;
     }
 
+    function checkWinner() {
+        isWinner = checkHorizonalWin();
+        isWinner = checkVerticalWin();
+        //TODO: check diagonal win (alahsoni)
+    }
+
     function InsertCoin(btn) {
         let [name, column] = btn.id.split(",");
         row = getAvailableSlot(column);
@@ -139,9 +184,12 @@
             setbuttonColor(row, column, currentPlayer);
             // will not change player unless slot was available.
             changePlayer();
+            checkWinner();
         }
 
     }
+
+    generate(4,4);
 
 </script>
 

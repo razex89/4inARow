@@ -13,7 +13,9 @@
 
 <textarea id="rowsNumber"></textarea>
 <textarea id="columnsNumber"></textarea>
-<button onclick="startGame()">generate buttons</button>
+<button onclick="startGame()">generate game</button>
+<p id="currentPlayer">currentPlayer: </p>
+<p id="gameWinner">currentWinner: </p>
 
 </body>
 
@@ -21,22 +23,26 @@
     .noPlayer {
         background-color: cornsilk;
     }
+
     .firstPlayer {
         background-color: red;
 
     }
+
     .secondPlayer {
         background-color: aqua;
 
     }
+
     /*.default {*/
     /*    background-color: cornsilk;*/
 
     /*}*/
-    .coinInsertButton{
+    .coinInsertButton {
         background-color: gold;
         position: relative;
     }
+
     .relative {
         /*display: inline;*/
         /*margin-right: 35px;*/
@@ -47,6 +53,7 @@
         /*align-items: center;*/
         /*justify-content: center;*/
     }
+
     .default {
         /*position: relative;*/
         /*left: 30px;*/
@@ -65,8 +72,8 @@
     }
 
     .divider {
-        width:30px;
-        height:auto;
+        width: 30px;
+        height: auto;
         display: inline-block;
         /*display:inline-block;*/
     }
@@ -74,7 +81,8 @@
 </style>
 
 <script>
-    String.prototype.format = function() {
+
+    String.prototype.format = function () {
         a = this;
         for (k in arguments) {
             a = a.replace("{" + k + "}", arguments[k])
@@ -84,15 +92,39 @@
 
     var grid;
     var currentPlayer;
+    const WIN_IN_A_ROW = 4;
+    var gameEnded;
 
     function startGame() {
         var rowsNumber = document.getElementById("rowsNumber").value;
         var columnsNumber = document.getElementById("columnsNumber").value;
-        generate(rowsNumber, columnsNumber)
+        generateGame(rowsNumber, columnsNumber)
     }
 
-    function generate(rowsNumber, columnsNumber){
-        for(let i = 0; i < rowsNumber; i++) {
+    function cleanBoard() {
+        let divs = document.getElementsByClassName("relative");
+        // we are shortening divs in runtime, so we have to keep it here.
+        let divsLength = divs.length;
+        for (let i = 0; i < divsLength; i++) {
+            // again, we are shortening it in real time
+            divs[0].parentNode.removeChild(divs[0]);
+        }
+        //
+        let coinDiv = document.getElementById("coinsDiv");
+        if (coinDiv) {
+            coinDiv.parentNode.removeChild(coinDiv);}
+        }
+
+
+        // divs = document.getElementsByClassName("div");
+        // for (let i = 0; i < divs.length; i++) {
+        //     divs[i].parentNode.removeChild(divs[i]);
+        // }
+
+    function generateGame(rowsNumber, columnsNumber) {
+        gameEnded = false;
+        cleanBoard();
+        for (let i = 0; i < rowsNumber; i++) {
             let div = document.createElement("div");
             div.classList.add("relative");
             for (let j = 0; j < columnsNumber; j++) {
@@ -106,7 +138,7 @@
                 btn.id = location;
                 btn.classList.add("noPlayer");
                 btn.classList.add("default");
-                btn.onclick = function() { setButtonState(btn); };
+                btn.onclick = function () {setButtonState(btn);};
                 btn.appendChild(t);
                 div.appendChild(btn);
                 div.appendChild(divider);
@@ -114,19 +146,25 @@
             }
         }
         let div = document.createElement("div");
+        div.id = "coinsDiv";
         for (let i = 0; i < rowsNumber; i++) {
             let btn = document.createElement("button");
             let t = document.createTextNode("insert coin");
             btn.id = "row,{0}".format(i);
             btn.classList.add("coinInsertButton");
-            btn.onclick = function() { InsertCoin(btn); };
+            btn.onclick = function () {
+                InsertCoin(btn);
+            };
             btn.appendChild(t);
             div.appendChild(btn);
             document.getElementById('button-holder').appendChild(div);
         }
 
         grid = Array(Number(rowsNumber)).fill().map(() => Array(Number(columnsNumber)).fill(0));
+        //TODO: do this dynamically as a list which connect the last object to the first (turn mechanism)
         currentPlayer = 1;
+        document.getElementById("currentPlayer").innerText = "currentPlayer = PLAYER-{0}".format(currentPlayer)
+
 
     }
 
@@ -135,8 +173,7 @@
         grid[row][column] = (grid[row][column] + 1) % 2;
         if (grid[row][column] === 1) {
             btn.className = "pressed"
-        }
-        else {
+        } else {
             btn.className = "notPressed"
         }
 
@@ -145,51 +182,82 @@
     function setbuttonColor(row, column, currentPlayer) {
         btn = document.getElementById("{0},{1}".format(row, column));
         if (currentPlayer === 1) {
-            btn.className = btn.className.replace( /(?:^|\s).*Player(?!\S)/g, "firstPlayer");
-        }
-        else {
-            btn.className = btn.className.replace( /(?:^|\s).*Player(?!\S)/g, "secondPlayer");
+            btn.className = btn.className.replace(/(?:^|\s).*Player(?!\S)/g, "firstPlayer");
+        } else {
+            btn.className = btn.className.replace(/(?:^|\s).*Player(?!\S)/g, "secondPlayer");
         }
     }
 
     function changePlayer() {
         if (currentPlayer === 1) {
             currentPlayer = 2;
-        }
-        else {
+        } else {
             currentPlayer = 1;
         }
+        document.getElementById("currentPlayer").innerText = "currentPlayer = PLAYER-{0}".format(currentPlayer)
     }
 
     function getAvailableSlot(column) {
-        for (let i = grid[0].length -1 ;i >= 0; i--){
-            if (grid[i][column] === 0){
+        for (let i = grid[0].length - 1; i >= 0; i--) {
+            if (grid[i][column] === 0) {
                 return i;
             }
         }
         return -1;
     }
 
-    function checkWinner() {
-        isWinner = checkHorizonalWin();
-        isWinner = checkVerticalWin();
+    function checkWinner(playerNumber) {
+        let rows = grid.length;
+        let columns = grid[0].length;
+        let hasWon = false;
+        for (let x = 0; x < rows && !hasWon; x++) {
+            for (let y = 0; y < columns && !hasWon; y++) {
+                if (x + WIN_IN_A_ROW <= rows) {
+                    hasWon = true;
+                    for (let i = 0; i < WIN_IN_A_ROW && hasWon; i++) {
+                        if (playerNumber !== grid[x + i][y]) {
+                            hasWon = false;
+                        }
+                    }
+                }
+                if (!hasWon && y + WIN_IN_A_ROW <= columns) {
+                    hasWon = true;
+                    for (let i = 0; i < WIN_IN_A_ROW && hasWon; i++) {
+                        if (playerNumber !== grid[x][y + i]) {
+                            hasWon = false;
+                        }
+                    }
+                }
+            }
+        }
+
+        return hasWon
         //TODO: check diagonal win (alahsoni)
     }
 
+
     function InsertCoin(btn) {
-        let [name, column] = btn.id.split(",");
-        row = getAvailableSlot(column);
-        if (row !== -1) {
-            grid[row][column] = currentPlayer;
-            setbuttonColor(row, column, currentPlayer);
-            // will not change player unless slot was available.
-            changePlayer();
-            checkWinner();
+        if (!gameEnded) {
+            let [name, column] = btn.id.split(",");
+            row = getAvailableSlot(column);
+            if (row !== -1) {
+                grid[row][column] = currentPlayer;
+                setbuttonColor(row, column, currentPlayer);
+                // will not change player unless slot was available.
+                let hasWon = checkWinner(currentPlayer);
+                if (hasWon) {
+                    gameEnded = true;
+                    document.getElementById("gameWinner").innerText = "currentWinner: PLAYER-{0}".format(currentPlayer)
+                } else {
+                    changePlayer();
+                }
+
+            }
         }
 
     }
 
-    generate(4,4);
+    generateGame(4, 4);
 
 </script>
 

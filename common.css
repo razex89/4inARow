@@ -1,0 +1,23 @@
+.textAreaColumn{
+    width:100%;
+}
+.textAreaColumn div{
+    float:left;
+    width:25%;
+    padding:10px;
+    box-sizing: border-box;
+}
+
+.textAreaColumn div span{
+    display:block;
+    text-align:center;
+    font-family: Tahoma, serif;
+}
+
+.textAreaColumn div textarea{
+    box-sizing: border-box;
+    width:100%;
+    border:3px solid red;
+    min-height:150px;
+    font-family: Tahoma, serif
+}

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <!-- Latest compiled and minified CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+
+    <!-- jQuery library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+
+    <!-- Latest compiled JavaScript -->
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="common.css">
+</head>
+<body>
+<div class="textAreaColumn">
+    <div>
+        <span>סגל יוצא</span>
+        <textarea id="leftOutSegel" onkeyup='saveValue(this);' onchange="SetLeftOutSegel()" class="inline-textarea"
+                  rows="30" cols="20">
+</textarea>
+    </div>
+    <div>
+        <span>סגל הווה</span>
+        <textarea id="CurrentConventionSegel" onkeyup='saveValue(this);' onchange="SetLeftOutSegel()"
+                  class="inline-textarea" rows="30" cols="20">
+</textarea>
+    </div>
+    <div>
+        <span>סגל עבר</span>
+        <textarea id="lastConventionSegel" onkeyup='saveValue(this);' onchange="SetLeftOutSegel()"
+                  class="inline-textarea" rows="30" cols="20">
+</textarea>
+    </div>
+</div>
+<button type="button" onclick="SortTexts()">sort</button>
+</body>
+
+<script>
+    if (typeof (String.prototype.trim) === "undefined") {
+        String.prototype.trim = function () {
+            return String(this).replace(/^\s+|\s+$/g, '');
+        };
+    }
+
+    function SetLeftOutSegel() {
+        var lastConventionSegel = document.getElementById("lastConventionSegel").value;
+        var CurrentConventionSegel = document.getElementById("CurrentConventionSegel").value;
+        var leftOutSegel = document.getElementById("leftOutSegel");
+        lastConventionSegel = arrangeText(lastConventionSegel, false).split('\n');
+        CurrentConventionSegel = arrangeText(CurrentConventionSegel, false).split('\n');
+
+        let leftOutSegelArray = lastConventionSegel.filter(x => !CurrentConventionSegel.includes(x));
+        leftOutSegel.value = leftOutSegelArray.join('\n');
+    }
+
+    document.getElementById("lastConventionSegel").value = getSavedValue("lastConventionSegel");    // set the value to this input
+    document.getElementById("CurrentConventionSegel").value = getSavedValue("CurrentConventionSegel");   // set the value to this input
+    document.getElementById("leftOutSegel").value = getSavedValue("leftOutSegel");   // set the value to this input
+    /* Here you can add more inputs to set value. if it's saved */
+
+    //Save the value function - save it to localStorage as (ID, VALUE)
+    function saveValue(e) {
+        var id = e.id;  // get the sender's id to save it .
+        var val = e.value; // get the value.
+        localStorage.setItem(id, val);// Every time user writing something, the localStorage's value will override .
+    }
+
+    //get the saved value function - return the value of "v" from localStorage.
+    function getSavedValue(v) {
+        if (!localStorage.getItem(v)) {
+            return "";// You can change this to your defualt value.
+        }
+        return localStorage.getItem(v);
+    }
+
+    function simplifyText(text){
+
+    }
+
+    function SortTexts() {
+        var lastConventionSegel = document.getElementById("lastConventionSegel");
+        var CurrentConventionSegel = document.getElementById("CurrentConventionSegel");
+        var leftOutSegel = document.getElementById("leftOutSegel");
+
+        lastConventionSegel.value = arrangeText(lastConventionSegel.value);
+        CurrentConventionSegel.value = arrangeText(CurrentConventionSegel.value);
+        leftOutSegel.value = arrangeText(leftOutSegel.value);
+    }
+
+    /**
+     * @return {string}
+     */
+    function arrangeText(text, sort = true) {
+        let splittedText = text.split('\n');
+        let trimmedArray = [];
+        for (const line in splittedText) {
+            trimmedArray.push(splittedText[line].trim());
+        }
+        if (sort) {
+            trimmedArray.sort();
+        }
+        return trimmedArray.join('\n');
+    }
+
+</script>
+
+</html>

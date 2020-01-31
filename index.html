@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="button-holder"></div>
+
+<textarea id="rowsNumber"></textarea>
+<textarea id="columnsNumber"></textarea>
+<button onclick="generate()">generate buttons</button>
+
+</body>
+
+<style>
+    .firstPlayer {
+        background-color: red;
+
+    }
+    .secondPlayer {
+        background-color: aqua;
+
+    }
+    .default {
+        background-color: cornsilk;
+
+    }
+    .coinInsertButton{
+        background-color: gold;
+    }
+    div.relative {
+
+    }
+    div > button {
+        position: relative;
+        left: 30px;
+        border: 3px solid #73AD21;
+    }
+
+</style>
+
+<script>
+    String.prototype.format = function() {
+        a = this;
+        for (k in arguments) {
+            a = a.replace("{" + k + "}", arguments[k])
+        }
+        return a
+    };
+
+    var grid;
+    var currentPlayer;
+
+    function generate(){
+        var rowsNumber = document.getElementById("rowsNumber").value;
+        var columnsNumber = document.getElementById("columnsNumber").value;
+
+        for(let j = 0; j < columnsNumber; j++) {
+            let div = document.createElement("div");
+            div.classList.add("relative");
+            for (let i = 0; i < rowsNumber; i++) {
+                let location = "{0},{1}".format(j, i);
+                let btn = document.createElement("button");
+                let t = document.createTextNode(location);
+                btn.style.width = "50px";
+                btn.style.height = "50px";
+                btn.id = location;
+                btn.classList.add("default");
+                btn.onclick = function() { setButtonState(btn); };
+                btn.appendChild(t);
+                div.appendChild(btn);
+                document.getElementById('button-holder').appendChild(div);
+            }
+        }
+        let div = document.createElement("div");
+        for (let i = 0; i < rowsNumber; i++) {
+            let btn = document.createElement("button");
+            let t = document.createTextNode("insert coin");
+            btn.id = "row,{0}".format(i);
+            btn.classList.add("coinInsertButton");
+            btn.onclick = function() { InsertCoin(btn); };
+            btn.appendChild(t);
+            div.appendChild(btn);
+            document.getElementById('button-holder').appendChild(div);
+        }
+
+        grid = Array(Number(rowsNumber)).fill().map(() => Array(Number(columnsNumber)).fill(0));
+        currentPlayer = 1;
+
+    }
+
+    function setButtonState(btn) {
+        let [row, column] = btn.id.split(',');
+        grid[row][column] = (grid[row][column] + 1) % 2;
+        if (grid[row][column] === 1) {
+            btn.className = "pressed"
+        }
+        else {
+            btn.className = "notPressed"
+        }
+
+    }
+
+    function setbuttonColor(row, column, currentPlayer) {
+        btn = document.getElementById("{0},{1}".format(row, column));
+        if (currentPlayer === 1) {
+            btn.className = "firstPlayer";
+        }
+        else {
+            btn.className = "secondPlayer";
+        }
+    }
+
+    function changePlayer() {
+        if (currentPlayer === 1) {
+            currentPlayer = 2;
+        }
+        else {
+            currentPlayer = 1;
+        }
+    }
+
+    function getAvailableSlot(column) {
+        for (let i = grid[0].length -1 ;i >= 0; i--){
+            if (grid[i][column] === 0){
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    function InsertCoin(btn) {
+        let [name, column] = btn.id.split(",");
+        row = getAvailableSlot(column);
+        if (row !== -1) {
+            grid[row][column] = currentPlayer;
+            setbuttonColor(row, column, currentPlayer);
+            // will not change player unless slot was available.
+            changePlayer();
+        }
+
+    }
+
+</script>
+
+</html>
